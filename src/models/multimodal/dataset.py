@@ -30,6 +30,8 @@ class DatasetBuildConfig:
     image_id_col: str = "source_row_id"
     target_col: str = "target_rain"
     max_samples_per_split: int | None = None
+    cache_images_in_memory: bool = False
+    max_cached_images_per_split: int | None = None
     train_years: Tuple[int, int] = (2006, 2012)
     val_years: Tuple[int, int] = (2013, 2014)
     test_years: Tuple[int, int] = (2015, 2015)
@@ -50,6 +52,9 @@ class MultimodalForecastDataset(Dataset):
         normalize_images: bool = True,
         target_col: str = "target_rain",
         drop_missing_images: bool = True,
+        cache_images_in_memory: bool = False,
+        shared_image_cache: Dict[int, torch.Tensor] | None = None,
+        max_cached_images: int | None = None,
     ) -> None:
         self.df = dataframe.reset_index(drop=True)
         self.sample_index = sample_index.reset_index(drop=True)
@@ -59,6 +64,9 @@ class MultimodalForecastDataset(Dataset):
         self.image_size = image_size
         self.normalize_images = normalize_images
         self.target_col = target_col
+        self.cache_images_in_memory = cache_images_in_memory
+        self.image_cache: Dict[int, torch.Tensor] = shared_image_cache if shared_image_cache is not None else {}
+        self.cached_image_count = 0
 
         if not self.image_dir.exists():
             raise FileNotFoundError(f"Image directory not found: {self.image_dir}")
@@ -85,6 +93,8 @@ class MultimodalForecastDataset(Dataset):
         self.filtered_out_missing_images = 0
         if drop_missing_images:
             self._filter_samples_with_missing_images()
+        if self.cache_images_in_memory:
+            self._prime_image_cache(max_cached_images=max_cached_images)
 
     def _scan_available_image_ids(self) -> set[int]:
         ids = set()
@@ -114,7 +124,7 @@ class MultimodalForecastDataset(Dataset):
     def __len__(self) -> int:
         return len(self.sample_index)
 
-    def _load_image_tensor(self, image_id: int) -> torch.Tensor:
+    def _load_image_tensor_from_disk(self, image_id: int) -> torch.Tensor:
         path = self.image_dir / f"{image_id}.png"
         with Image.open(path) as img:
             gray = img.convert("L")
@@ -124,6 +134,37 @@ class MultimodalForecastDataset(Dataset):
         if self.normalize_images:
             arr = (arr - 0.5) / 0.5
         return torch.from_numpy(arr).unsqueeze(0)
+
+    def _collect_required_image_ids(self, max_cached_images: int | None) -> list[int]:
+        required_ids: set[int] = set()
+        for _, row in self.sample_index.iterrows():
+            start = int(row["image_start_idx"])
+            end = int(row["image_end_idx"])
+            needed_ids = self.image_ids[start : end + 1]
+            for image_id in needed_ids:
+                required_ids.add(int(image_id))
+        sorted_ids = sorted(required_ids)
+        if max_cached_images is not None:
+            return sorted_ids[:max_cached_images]
+        return sorted_ids
+
+    def _prime_image_cache(self, *, max_cached_images: int | None = None) -> None:
+        required_ids = self._collect_required_image_ids(max_cached_images=max_cached_images)
+        for image_id in required_ids:
+            if image_id not in self.image_cache:
+                self.image_cache[image_id] = self._load_image_tensor_from_disk(image_id)
+        self.cached_image_count = len(self.image_cache)
+
+    def _load_image_tensor(self, image_id: int) -> torch.Tensor:
+        if self.cache_images_in_memory:
+            cached = self.image_cache.get(image_id)
+            if cached is not None:
+                return cached
+        tensor = self._load_image_tensor_from_disk(image_id)
+        if self.cache_images_in_memory:
+            self.image_cache[image_id] = tensor
+            self.cached_image_count = len(self.image_cache)
+        return tensor
 
     def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         row = self.sample_index.iloc[idx]
@@ -178,6 +219,7 @@ def build_multimodal_datasets(
 
     datasets: Dict[str, MultimodalForecastDataset] = {}
     dropped_missing: Dict[str, int] = {}
+    shared_cache: Dict[int, torch.Tensor] | None = {} if config.cache_images_in_memory else None
     for split_name, split_index in splits.items():
         ds = MultimodalForecastDataset(
             df,
@@ -189,6 +231,9 @@ def build_multimodal_datasets(
             normalize_images=config.normalize_images,
             target_col=config.target_col,
             drop_missing_images=True,
+            cache_images_in_memory=config.cache_images_in_memory,
+            shared_image_cache=shared_cache,
+            max_cached_images=config.max_cached_images_per_split,
         )
         datasets[split_name] = ds
         dropped_missing[split_name] = ds.filtered_out_missing_images
@@ -202,5 +247,7 @@ def build_multimodal_datasets(
         "horizon_hours": config.horizon_hours,
         "meteo_lookback_steps": config.meteo_lookback_steps,
         "image_lookback_steps": config.image_lookback_steps,
+        "cache_images_in_memory": config.cache_images_in_memory,
+        "shared_cached_image_count": int(len(shared_cache)) if shared_cache is not None else 0,
     }
     return datasets, feature_columns, metadata

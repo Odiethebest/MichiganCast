@@ -25,10 +25,11 @@ class TrainingConfig:
 
 
 def _move_batch_to_device(batch: Dict[str, torch.Tensor], device: torch.device) -> Dict[str, torch.Tensor]:
+    non_blocking = device.type == "cuda"
     return {
-        "image_sequence": batch["image_sequence"].to(device),
-        "meteo_sequence": batch["meteo_sequence"].to(device),
-        "target": batch["target"].to(device),
+        "image_sequence": batch["image_sequence"].to(device, non_blocking=non_blocking),
+        "meteo_sequence": batch["meteo_sequence"].to(device, non_blocking=non_blocking),
+        "target": batch["target"].to(device, non_blocking=non_blocking),
     }
 
 
