@@ -11,13 +11,6 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    average_precision_score,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-)
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.feature_selection import VarianceThreshold
@@ -25,6 +18,7 @@ from sklearn.preprocessing import StandardScaler
 
 from src.data.clean import CleaningConfig, run_cleaning_pipeline
 from src.data.split import TimeSplitConfig, split_samples_by_label_year
+from src.eval.metrics import evaluate_binary_predictions
 from src.features.labeling import (
     ForecastSamplingConfig,
     attach_utc_timestamp,
@@ -45,19 +39,6 @@ def _ensure_input_exists(input_csv: str, auto_clean: bool) -> None:
         raise FileNotFoundError(f"Input not found: {input_csv}")
     cfg = CleaningConfig(output_csv=input_csv)
     run_cleaning_pipeline(cfg)
-
-
-def _evaluate_predictions(y_true: np.ndarray, y_prob: np.ndarray, threshold: float = 0.5) -> Dict[str, object]:
-    y_pred = (y_prob >= threshold).astype(int)
-    cm = confusion_matrix(y_true, y_pred)
-    return {
-        "pr_auc": float(average_precision_score(y_true, y_prob)),
-        "f1": float(f1_score(y_true, y_pred, zero_division=0)),
-        "recall": float(recall_score(y_true, y_pred, zero_division=0)),
-        "precision": float(precision_score(y_true, y_pred, zero_division=0)),
-        "threshold": float(threshold),
-        "confusion_matrix": cm.tolist(),
-    }
 
 
 def _save_confusion_matrix_plot(cm: np.ndarray, title: str, out_path: Path) -> None:
@@ -134,6 +115,7 @@ def train_and_evaluate_baselines(
     meteo_lookback_steps: int = 48,
     image_lookback_steps: int = 16,
     threshold: float = 0.5,
+    precision_threshold: float = 0.7,
     auto_clean: bool = True,
     nrows: int | None = None,
 ) -> Dict[str, object]:
@@ -230,7 +212,12 @@ def train_and_evaluate_baselines(
     for name, model in models.items():
         model.fit(X_train, y_train)
         val_prob = model.predict_proba(X_val)[:, 1]
-        val_metrics = _evaluate_predictions(y_val, val_prob, threshold=threshold)
+        val_metrics = evaluate_binary_predictions(
+            y_val,
+            val_prob,
+            threshold=threshold,
+            precision_threshold=precision_threshold,
+        )
         cm_val = np.array(val_metrics["confusion_matrix"], dtype=int)
         val_cm_path = fig_root / f"baseline_cm_{name}_val.png"
         _save_confusion_matrix_plot(cm_val, f"{name} (val)", val_cm_path)
@@ -241,7 +228,12 @@ def train_and_evaluate_baselines(
 
         if len(test_df) > 0:
             test_prob = model.predict_proba(X_test)[:, 1]
-            test_metrics = _evaluate_predictions(y_test, test_prob, threshold=threshold)
+            test_metrics = evaluate_binary_predictions(
+                y_test,
+                test_prob,
+                threshold=threshold,
+                precision_threshold=precision_threshold,
+            )
             cm_test = np.array(test_metrics["confusion_matrix"], dtype=int)
             test_cm_path = fig_root / f"baseline_cm_{name}_test.png"
             _save_confusion_matrix_plot(cm_test, f"{name} (test)", test_cm_path)
@@ -264,6 +256,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--meteo-lookback", type=int, default=48, help="Meteorological lookback steps")
     parser.add_argument("--image-lookback", type=int, default=16, help="Image lookback steps")
     parser.add_argument("--threshold", type=float, default=0.5, help="Decision threshold")
+    parser.add_argument(
+        "--precision-threshold",
+        type=float,
+        default=0.7,
+        help="Precision threshold used for Recall@Precision",
+    )
     parser.add_argument("--nrows", type=int, default=None, help="Optional row limit for quick runs")
     parser.add_argument("--no-auto-clean", action="store_true", help="Disable auto clean fallback")
     return parser
@@ -279,6 +277,7 @@ def main() -> None:
         meteo_lookback_steps=args.meteo_lookback,
         image_lookback_steps=args.image_lookback,
         threshold=args.threshold,
+        precision_threshold=args.precision_threshold,
         auto_clean=not args.no_auto_clean,
         nrows=args.nrows,
     )
