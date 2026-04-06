@@ -1,0 +1,23 @@
+metadata:
+  experiment_id: t21_exp04_large_hidden
+  objective: higher_model_capacity
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 48
+  image_lookback_steps: 16
+model:
+  conv_hidden_dim: 96
+  meteo_hidden_dim: 192
+  fusion_hidden_dim: 96
+  dropout: 0.45
+train:
+  batch_size: 48
+  epochs: 14
+  learning_rate: 0.0008
+  weight_decay: 0.0001
+  loss:
+    type: bce
+  decision_threshold: 0.50
+  precision_threshold: 0.70
+  seed: 42
+

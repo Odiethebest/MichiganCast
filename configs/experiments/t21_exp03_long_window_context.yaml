@@ -1,0 +1,23 @@
+metadata:
+  experiment_id: t21_exp03_long_window_context
+  objective: stronger_temporal_context
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 72
+  image_lookback_steps: 24
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.50
+train:
+  batch_size: 48
+  epochs: 12
+  learning_rate: 0.0008
+  weight_decay: 0.0
+  loss:
+    type: bce
+  decision_threshold: 0.50
+  precision_threshold: 0.70
+  seed: 42
+

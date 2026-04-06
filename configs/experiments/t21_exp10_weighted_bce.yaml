@@ -1,0 +1,24 @@
+metadata:
+  experiment_id: t21_exp10_weighted_bce
+  objective: class_reweighting
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 48
+  image_lookback_steps: 16
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.45
+train:
+  batch_size: 64
+  epochs: 14
+  learning_rate: 0.0008
+  weight_decay: 0.0001
+  loss:
+    type: weighted_bce
+    pos_weight: auto
+  decision_threshold: 0.45
+  precision_threshold: 0.70
+  seed: 42
+

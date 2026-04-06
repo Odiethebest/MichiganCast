@@ -1,0 +1,22 @@
+metadata:
+  experiment_id: t21_exp12_low_threshold_recall
+  objective: recall_priority_decision
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 48
+  image_lookback_steps: 16
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.50
+train:
+  batch_size: 64
+  epochs: 12
+  learning_rate: 0.0010
+  weight_decay: 0.0
+  loss:
+    type: bce
+  decision_threshold: 0.35
+  precision_threshold: 0.70
+  seed: 42

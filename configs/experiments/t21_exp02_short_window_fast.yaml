@@ -1,0 +1,23 @@
+metadata:
+  experiment_id: t21_exp02_short_window_fast
+  objective: lower_latency_window
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 24
+  image_lookback_steps: 8
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.40
+train:
+  batch_size: 64
+  epochs: 12
+  learning_rate: 0.0010
+  weight_decay: 0.0
+  loss:
+    type: bce
+  decision_threshold: 0.50
+  precision_threshold: 0.70
+  seed: 42
+

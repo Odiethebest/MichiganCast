@@ -1,0 +1,23 @@
+metadata:
+  experiment_id: t21_exp06_high_dropout
+  objective: stronger_regularization
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 48
+  image_lookback_steps: 16
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.65
+train:
+  batch_size: 64
+  epochs: 14
+  learning_rate: 0.0010
+  weight_decay: 0.0002
+  loss:
+    type: bce
+  decision_threshold: 0.50
+  precision_threshold: 0.70
+  seed: 42
+

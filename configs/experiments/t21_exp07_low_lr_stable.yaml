@@ -1,0 +1,23 @@
+metadata:
+  experiment_id: t21_exp07_low_lr_stable
+  objective: conservative_optimization
+task:
+  horizon_hours: 24
+  meteo_lookback_steps: 48
+  image_lookback_steps: 16
+model:
+  conv_hidden_dim: 64
+  meteo_hidden_dim: 128
+  fusion_hidden_dim: 64
+  dropout: 0.50
+train:
+  batch_size: 64
+  epochs: 16
+  learning_rate: 0.0005
+  weight_decay: 0.0001
+  loss:
+    type: bce
+  decision_threshold: 0.50
+  precision_threshold: 0.70
+  seed: 42
+
