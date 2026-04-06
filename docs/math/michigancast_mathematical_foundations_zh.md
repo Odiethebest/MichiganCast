@@ -8,9 +8,9 @@
 
 ## 1. 任务形式化与符号
 
-设时间索引为 \(t\)，气象特征向量为 \(\mathbf{m}_t \in \mathbb{R}^F\)，卫星图像帧为 \(\mathbf{I}_t \in \mathbb{R}^{1\times H\times W}\)，降水实值为 \(p_t\)。
+设时间索引为 `t`，气象特征向量为 `m_t ∈ R^F`，卫星图像帧为 `I_t ∈ R^(1×H×W)`，降水实值为 `p_t`。
 
-项目预测的是未来时刻是否降水，而非同刻分类。对预测步长 \(h\)（小时），定义：
+项目预测的是未来时刻是否降水，而非同刻分类。对预测步长 `h`（小时），定义：
 
 $$
 y_t^{(h)}=\mathbb{1}\!\left(p_{t+h}>\tau_{\text{rain}}\right), \quad \tau_{\text{rain}}=0
@@ -23,7 +23,7 @@ $$
 \mathbf{X}^{\text{img}}_t=\left[\mathbf{I}_{t-L_i+1},\ldots,\mathbf{I}_t\right]
 $$
 
-其中 \(L_m\) 与 \(L_i\) 分别是气象和图像回看长度。
+其中 `L_m` 与 `L_i` 分别是气象和图像回看长度。
 
 ---
 
@@ -41,7 +41,7 @@ $$
 
 ### 2.2 时间切分
 
-样本按标签时间 \(y\_time\) 的年份切分为 train/val/test，而不是随机切分。形式上：
+样本按标签时间 `y_time` 的年份切分为 train/val/test，而不是随机切分。形式上：
 
 $$
 \mathcal{D}_{\text{train}}=\{(x,y)\mid \text{year}(y\_time)\in [y_1,y_2]\}
@@ -63,15 +63,18 @@ $$
 \sigma_j=\sqrt{\frac{1}{N}\sum_{i=1}^N (x_{ij}-\mu_j)^2}
 $$
 
-并以 \(\max(\sigma_j,10^{-6})\) 避免除零。
+并以 `max(sigma_j, 1e-6)` 避免除零。
 
 ### 3.2 缺失值插补与图像归一化
 
 - 基线模型中，缺失值使用中位数插补：
+
 $$
 x_{ij}\leftarrow \operatorname{median}\{x_{kj}\}_{k\in \mathcal{I}_j}
 $$
-- 图像像素在数据集构造中被缩放到 \([-1,1]\)：
+
+- 图像像素在数据集构造中被缩放到 `[-1, 1]`：
+
 $$
 u=\frac{\text{pixel}}{255},\quad \hat{u}=\frac{u-0.5}{0.5}
 $$
@@ -97,7 +100,7 @@ $$
 \hat{p}(\mathbf{x})=\frac{1}{B}\sum_{b=1}^{B} T_b(\mathbf{x})
 $$
 
-其中 \(T_b\) 为第 \(b\) 棵树的概率输出。
+其中 `T_b` 为第 `b` 棵树的概率输出。
 
 ### 4.3 Gradient Boosting
 
@@ -108,15 +111,15 @@ F_M(\mathbf{x})=\sum_{m=1}^M \nu \gamma_m h_m(\mathbf{x}),\quad
 \hat{p}(\mathbf{x})=\sigma(F_M(\mathbf{x}))
 $$
 
-其中 \(\nu\) 是学习率，\(h_m\) 是基学习器。
+其中 `nu` 是学习率，`h_m` 是基学习器。
 
 ---
 
 ## 5. 多模态网络的核心公式
 
-## 5.1 ConvLSTM 图像分支
+### 5.1 ConvLSTM 图像分支
 
-对每个时刻 \(t\)，ConvLSTM 单元为：
+对每个时刻 `t`，ConvLSTM 单元为：
 
 $$
 \mathbf{i}_t=\sigma(\mathbf{W}_{xi}*\mathbf{X}_t+\mathbf{W}_{hi}*\mathbf{H}_{t-1}+\mathbf{b}_i)
@@ -135,11 +138,11 @@ $$
 \mathbf{H}_t=\mathbf{o}_t\odot\tanh(\mathbf{C}_t)
 $$
 
-其中 \(*\) 表示卷积，\(\odot\) 表示逐元素乘法。
+其中 `*` 表示卷积，`⊙` 表示逐元素乘法。
 
 ### 5.2 LSTM 气象分支与融合头
 
-气象序列经 LSTM 得到最终隐状态 \(\mathbf{h}^{\text{meteo}}\)。图像分支最终特征记为 \(\mathbf{h}^{\text{img}}\)（池化后向量）。
+气象序列经 LSTM 得到最终隐状态 `h_meteo`。图像分支最终特征记为 `h_img`（池化后向量）。
 
 融合：
 
@@ -151,7 +154,7 @@ z=\mathbf{W}_2\phi(\mathbf{W}_1\mathbf{h}^{\text{fusion}}+\mathbf{b}_1)+\mathbf{
 \hat{p}=\sigma(z)
 $$
 
-其中 \(z\) 为 logit，\(\phi\) 为 ReLU。
+其中 `z` 为 logit，`phi` 为 ReLU。
 
 ---
 
@@ -159,7 +162,7 @@ $$
 
 ### 6.1 BCEWithLogits
 
-二分类交叉熵（以 logit \(z\) 表示）：
+二分类交叉熵（以 logit `z` 表示）：
 
 $$
 \mathcal{L}_{\text{BCE}}(z,y)=
@@ -168,14 +171,14 @@ $$
 
 ### 6.2 加权 BCE
 
-对正类加权 \(w_+\)：
+对正类加权 `w_+`：
 
 $$
 \mathcal{L}_{\text{WBCE}}(z,y)=
 -w_+\,y\log \sigma(z)-(1-y)\log(1-\sigma(z))
 $$
 
-项目中 \(w_+ \approx \frac{N_{\text{neg}}}{N_{\text{pos}}}\)（下限 1）。
+项目中 `w_+ ≈ N_neg / N_pos`（下限 1）。
 
 ### 6.3 Focal Loss
 
@@ -200,7 +203,7 @@ $$
 
 ### 6.4 阈值移动（Threshold Moving）
 
-给定精度下限 \(\pi_0\)，项目在验证集上选择：
+给定精度下限 `pi_0`，项目在验证集上选择：
 
 $$
 \tau^*=\arg\max_{\tau}\ \text{Recall}(\tau)
@@ -216,7 +219,7 @@ $$
 
 ### 7.1 Adam
 
-令梯度为 \(g_t=\nabla_\theta \mathcal{L}_t\)：
+令梯度为 `g_t = ∇_theta L_t`：
 
 $$
 m_t=\beta_1 m_{t-1}+(1-\beta_1)g_t,\quad
@@ -232,8 +235,8 @@ $$
 
 ### 7.2 学习率调度与早停
 
-- ReduceLROnPlateau：若验证损失长期不降，\(\eta \leftarrow 0.5\eta\)。
-- Early Stopping：若验证损失连续 \(P\) 个 epoch 未改善，则停止训练。
+- ReduceLROnPlateau：若验证损失长期不降，`eta <- 0.5 * eta`。
+- Early Stopping：若验证损失连续 `P` 个 epoch 未改善，则停止训练。
 
 ---
 
@@ -257,7 +260,7 @@ $$
 \text{AP}=\sum_n (R_n-R_{n-1})P_n
 $$
 
-其中 \(P_n,R_n\) 分别是 PR 曲线上的 precision 与 recall 点。
+其中 `P_n, R_n` 分别是 PR 曲线上的 precision 与 recall 点。
 
 ### 8.3 Recall at Precision
 
@@ -280,7 +283,7 @@ $$
 
 ### 9.1 多次训练稳定性
 
-对指标 \(m_k\)（如 test PR-AUC），在多次重复训练 \(r=1,\ldots,R\) 下定义：
+对指标 `m_k`（如 test PR-AUC），在多次重复训练 `r = 1, ..., R` 下定义：
 
 $$
 \Delta_k=\max_r m_k^{(r)}-\min_r m_k^{(r)}
@@ -292,13 +295,13 @@ $$
 \Delta_{\max}=\max_k \Delta_k
 $$
 
-若 \(\Delta_{\max}\le \delta\)（项目中 \(\delta=0.03\)），则判定训练稳定。
+若 `Delta_max <= delta`（项目中 `delta = 0.03`），则判定训练稳定。
 
 ### 9.2 在线监控统计
 
 服务侧维护：
 
-- 延迟均值、\(p50\)、\(p95\)、最大值；
+- 延迟均值、`p50`、`p95`、最大值；
 - 预测分数的均值、标准差、最小/最大；
 - 固定分箱直方图统计；
 - 输入分布的均值与标准差摘要。
@@ -315,42 +318,42 @@ $$
 
 | 数学对象 | 代码位置 |
 |---|---|
-| 未来标签定义 \(y_t^{(h)}\) 与防泄漏约束 | `src/features/labeling.py` |
+| 未来标签定义 `y_t^(h)` 与防泄漏约束 | `src/features/labeling.py` |
 | 按标签年份切分 | `src/data/split.py` |
 | 标准化与阈值移动 | `src/train/imbalance.py` |
 | Logistic / RF / GB 基线 | `src/models/baselines.py` |
 | ConvLSTM + LSTM 融合网络 | `src/models/multimodal/model.py` |
 | BCE、Adam、调度器、早停 | `src/models/multimodal/train_loop.py` |
 | 指标族（PR-AUC, F1, Recall@Precision, Brier） | `src/eval/metrics.py` |
-| 稳定性 \(\Delta_{\max}\) 判据 | `src/train/train.py` |
+| 稳定性 `Delta_max` 判据 | `src/train/train.py` |
 | 在线统计（分位数、直方图、分布摘要） | `src/serve/monitoring.py` |
 
 ---
 
 ## 参考文献
 
-[1] Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780. https://doi.org/10.1162/neco.1997.9.8.1735
+[1] Hochreiter, S., & Schmidhuber, J. (1997). [Long Short-Term Memory](https://doi.org/10.1162/neco.1997.9.8.1735). *Neural Computation*, 9(8), 1735-1780.
 
-[2] Shi, X., Chen, Z., Wang, H., Yeung, D.-Y., Wong, W.-K., & Woo, W.-C. (2015). Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting. *NeurIPS 2015*. https://arxiv.org/abs/1506.04214
+[2] Shi, X., Chen, Z., Wang, H., Yeung, D.-Y., Wong, W.-K., & Woo, W.-C. (2015). [Convolutional LSTM Network: A Machine Learning Approach for Precipitation Nowcasting](https://arxiv.org/abs/1506.04214). *NeurIPS 2015*.
 
-[3] Kingma, D. P., & Ba, J. (2015). Adam: A Method for Stochastic Optimization. *ICLR 2015*. https://arxiv.org/abs/1412.6980
+[3] Kingma, D. P., & Ba, J. (2015). [Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980). *ICLR 2015*.
 
-[4] Lin, T.-Y., Goyal, P., Girshick, R., He, K., & Dollár, P. (2017). Focal Loss for Dense Object Detection. *ICCV 2017*. https://arxiv.org/abs/1708.02002
+[4] Lin, T.-Y., Goyal, P., Girshick, R., He, K., & Dollár, P. (2017). [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002). *ICCV 2017*.
 
-[5] Breiman, L. (2001). Random Forests. *Machine Learning*, 45, 5-32. https://doi.org/10.1023/A:1010933404324
+[5] Breiman, L. (2001). [Random Forests](https://doi.org/10.1023/A:1010933404324). *Machine Learning*, 45, 5-32.
 
-[6] Friedman, J. H. (2001). Greedy Function Approximation: A Gradient Boosting Machine. *Annals of Statistics*, 29(5), 1189-1232. https://doi.org/10.1214/aos/1013203451
+[6] Friedman, J. H. (2001). [Greedy Function Approximation: A Gradient Boosting Machine](https://doi.org/10.1214/aos/1013203451). *Annals of Statistics*, 29(5), 1189-1232.
 
-[7] Brier, G. W. (1950). Verification of Forecasts Expressed in Terms of Probability. *Monthly Weather Review*, 78(1), 1-3. https://doi.org/10.1175/1520-0493(1950)078<0001:VOFEIT>2.0.CO;2
+[7] Brier, G. W. (1950). [Verification of Forecasts Expressed in Terms of Probability](https://doi.org/10.1175/1520-0493(1950)078%3C0001:VOFEIT%3E2.0.CO;2). *Monthly Weather Review*, 78(1), 1-3.
 
-[8] Davis, J., & Goadrich, M. (2006). The Relationship Between Precision-Recall and ROC Curves. *ICML 2006*. https://dl.acm.org/doi/10.1145/1143844.1143874
+[8] Davis, J., & Goadrich, M. (2006). [The Relationship Between Precision-Recall and ROC Curves](https://dl.acm.org/doi/10.1145/1143844.1143874). *ICML 2006*.
 
-[9] Saito, T., & Rehmsmeier, M. (2015). The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets. *PLOS ONE*, 10(3):e0118432. https://doi.org/10.1371/journal.pone.0118432
+[9] Saito, T., & Rehmsmeier, M. (2015). [The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets](https://doi.org/10.1371/journal.pone.0118432). *PLOS ONE*, 10(3):e0118432.
 
-[10] Prechelt, L. (1998). Early Stopping - But When? In *Neural Networks: Tricks of the Trade*. Springer. https://doi.org/10.1007/3-540-49430-8_3
+[10] Prechelt, L. (1998). [Early Stopping - But When?](https://doi.org/10.1007/3-540-49430-8_3). In *Neural Networks: Tricks of the Trade*. Springer.
 
-[11] Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Springer.
+[11] Bishop, C. M. (2006). [Pattern Recognition and Machine Learning](https://link.springer.com/book/10.1007/978-0-387-45528-0). Springer.
 
-[12] Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. https://www.deeplearningbook.org/
+[12] Goodfellow, I., Bengio, Y., & Courville, A. (2016). [Deep Learning](https://www.deeplearningbook.org/). MIT Press.
 
-[13] Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and Practice* (3rd ed). OTexts. https://otexts.com/fpp3/
+[13] Hyndman, R. J., & Athanasopoulos, G. (2021). [Forecasting: Principles and Practice (3rd ed)](https://otexts.com/fpp3/). OTexts.
