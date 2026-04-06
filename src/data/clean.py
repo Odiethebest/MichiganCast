@@ -76,6 +76,7 @@ def _daytime_filter(df: pd.DataFrame, *, time_col: str = "Time_UTC") -> pd.DataF
 def clean_dataframe(raw: pd.DataFrame, *, require_image_filename: bool = False) -> tuple[pd.DataFrame, Dict[str, object]]:
     summary: Dict[str, object] = {"steps": []}
     df = raw.copy()
+    df["source_row_id"] = df.index.astype(int)
     summary["input_rows"] = int(len(df))
 
     df = _normalize_markers(df)
@@ -113,7 +114,6 @@ def clean_dataframe(raw: pd.DataFrame, *, require_image_filename: bool = False) 
         summary["dropped_rows_missing_image_filename"] = int(before_image_drop - len(df))
         summary["steps"].append("drop_rows_without_image_filename")
 
-    df["source_row_id"] = df.index.astype(int)
     summary["output_rows"] = int(len(df))
     summary["output_columns"] = list(df.columns)
     return df, summary
