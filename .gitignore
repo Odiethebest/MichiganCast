@@ -26,6 +26,8 @@ models/**/*.h5
 artifacts/figures/*.png
 artifacts/logs/
 artifacts/reports/
+artifacts/data_quality_report.json
+artifacts/reports/*.json
 
 # Presentation exports
 reports/slides/*.pptx
