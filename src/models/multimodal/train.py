@@ -18,6 +18,7 @@ from src.data.clean import CleaningConfig, run_cleaning_pipeline
 from src.models.multimodal.dataset import DatasetBuildConfig, build_multimodal_datasets
 from src.models.multimodal.model import MichiganCastMultimodalNet
 from src.models.multimodal.train_loop import TrainingConfig, evaluate_loader, fit_multimodal_model
+from src.train.experiment_tracking import record_experiment_run
 
 
 @dataclass(frozen=True)
@@ -222,6 +223,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--apple-metal-opt", dest="apple_metal_opt", action="store_true")
     parser.add_argument("--no-apple-metal-opt", dest="apple_metal_opt", action="store_false")
     parser.set_defaults(apple_metal_opt=True)
+    parser.add_argument("--experiment-name", default="michigancast_multimodal")
+    parser.add_argument("--experiment-root", default="artifacts/experiments")
+    parser.add_argument("--no-experiment-log", action="store_true")
     parser.add_argument("--no-auto-clean", action="store_true")
     return parser
 
@@ -238,6 +242,71 @@ def _build_loader(dataset, *, runtime: RuntimeProfile, shuffle: bool) -> DataLoa
         if runtime.prefetch_factor is not None:
             kwargs["prefetch_factor"] = runtime.prefetch_factor
     return DataLoader(dataset, **kwargs)
+
+
+def _save_epoch_artifacts(history: dict, output_dir: Path) -> dict[str, str]:
+    train_loss = history.get("train_loss", [])
+    if not train_loss:
+        return {}
+
+    row_count = len(train_loss)
+    frame = pd.DataFrame({"epoch": list(range(1, row_count + 1))})
+    candidate_cols = [
+        "train_loss",
+        "val_loss",
+        "val_pr_auc",
+        "val_f1",
+        "val_recall",
+        "val_precision",
+        "val_recall_at_precision",
+        "val_brier",
+    ]
+    for col in candidate_cols:
+        values = history.get(col)
+        if isinstance(values, list) and len(values) == row_count:
+            frame[col] = values
+
+    csv_path = output_dir / "multimodal_epoch_metrics.csv"
+    frame.to_csv(csv_path, index=False)
+
+    figure_path = output_dir / "multimodal_train_validation_metrics.png"
+    try:
+        import matplotlib.pyplot as plt
+
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        axes[0].plot(frame["epoch"], frame["train_loss"], label="train_loss", linewidth=2)
+        if "val_loss" in frame.columns:
+            axes[0].plot(frame["epoch"], frame["val_loss"], label="val_loss", linewidth=2)
+        axes[0].set_title("Loss by Epoch")
+        axes[0].set_xlabel("Epoch")
+        axes[0].set_ylabel("Loss")
+        axes[0].grid(alpha=0.3)
+        axes[0].legend()
+
+        if "val_pr_auc" in frame.columns:
+            axes[1].plot(frame["epoch"], frame["val_pr_auc"], label="val_pr_auc", linewidth=2)
+        if "val_f1" in frame.columns:
+            axes[1].plot(frame["epoch"], frame["val_f1"], label="val_f1", linewidth=2)
+        if "val_recall" in frame.columns:
+            axes[1].plot(frame["epoch"], frame["val_recall"], label="val_recall", linewidth=2)
+        axes[1].set_title("Validation Metrics by Epoch")
+        axes[1].set_xlabel("Epoch")
+        axes[1].set_ylabel("Score")
+        axes[1].set_ylim(0.0, 1.0)
+        axes[1].grid(alpha=0.3)
+        axes[1].legend()
+
+        fig.tight_layout()
+        fig.savefig(figure_path, dpi=160)
+        plt.close(fig)
+        figure_written = True
+    except Exception:
+        figure_written = False
+
+    artifacts = {"epoch_metrics_csv": str(csv_path)}
+    if figure_written:
+        artifacts["epoch_metrics_figure"] = str(figure_path)
+    return artifacts
 
 
 def main() -> None:
@@ -321,6 +390,7 @@ def main() -> None:
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    epoch_artifacts = _save_epoch_artifacts(fit_result.get("history", {}), output_dir)
     summary_path = output_dir / "multimodal_train_summary.json"
     summary = {
         "dataset_config": asdict(dataset_cfg),
@@ -331,10 +401,20 @@ def main() -> None:
         "dataset_metadata": dataset_meta,
         "feature_columns": feature_columns,
         "fit_result": fit_result,
+        "epoch_artifacts": epoch_artifacts,
         "test_loss": test_loss,
         "test_metrics": test_metrics,
     }
     summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    tracking_info = None
+    if not args.no_experiment_log:
+        tracking_info = record_experiment_run(
+            experiment_root=args.experiment_root,
+            experiment_name=args.experiment_name,
+            summary=summary,
+            summary_path=summary_path,
+        )
 
     print(
         f"[train] done checkpoint={fit_result['checkpoint_path']} "
@@ -344,6 +424,16 @@ def main() -> None:
         f"[train] test_pr_auc={test_metrics['pr_auc']:.4f} "
         f"test_f1={test_metrics['f1']:.4f} test_recall={test_metrics['recall']:.4f}"
     )
+    if epoch_artifacts:
+        print(f"[train] epoch_metrics_csv={epoch_artifacts['epoch_metrics_csv']}")
+        if "epoch_metrics_figure" in epoch_artifacts:
+            print(f"[train] epoch_metrics_figure={epoch_artifacts['epoch_metrics_figure']}")
+    if tracking_info is not None:
+        print(
+            f"[train] experiment_run_id={tracking_info['run_id']} "
+            f"run_dir={tracking_info['run_dir']}"
+        )
+        print(f"[train] experiment_metrics={tracking_info['metrics_json']}")
     print(f"[train] summary={summary_path}")
 
 

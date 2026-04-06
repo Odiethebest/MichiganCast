@@ -29,6 +29,8 @@ artifacts/logs/
 artifacts/reports/
 artifacts/data_quality_report.json
 artifacts/reports/*.json
+artifacts/experiments/*
+!artifacts/experiments/.gitkeep
 
 # Presentation exports
 reports/slides/*.pptx
