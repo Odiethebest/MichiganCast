@@ -233,3 +233,13 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 - [Mathematical Foundations (EN)](docs/math/michigancast_mathematical_foundations_en.md)
 - [Project Structure](docs/architecture/project_structure.md)
 - [Task Definition](configs/task.yaml)
+
+---
+
+## More Work and Course Origin
+
+To explore more of my work, visit [odieyang.com/work](https://odieyang.com/work).
+
+This repository is a reconstruction of a course project from my time studying in Boston, built for a machine learning and neural networks class taught by [Professor Dino](https://coe.northeastern.edu/people/konstantopoulos-constantin/). My teammate on the original project was [Tianyu Zhang](https://www.linkedin.com/in/tianyu-zhang-83177a333/).
+
+Back then, it looked like an assignment. Years later, it reads like a beginning.
