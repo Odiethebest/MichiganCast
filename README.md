@@ -17,6 +17,7 @@
 - [Core Capabilities](#core-capabilities)
 - [Pipeline Surface](#pipeline-surface)
 - [Getting Started](#getting-started)
+- [Notebook Demo Flow](#notebook-demo-flow)
 - [Engineering Depth (Portfolio Signals)](#engineering-depth-portfolio-signals)
 - [Repository Structure](#repository-structure)
 - [Documentation](#documentation)
@@ -140,6 +141,27 @@ scripts/run_in_pytorch_env.sh python -m src.models.multimodal.train --nrows 5000
 
 ---
 
+## Notebook Demo Flow
+
+Primary portfolio demo notebooks (run in order):
+
+| Order | Notebook | Goal |
+|---|---|---|
+| 00 | `notebooks/demo/00_demo_index.ipynb` | Demo roadmap and capability mapping |
+| 01 | `notebooks/demo/01_data_foundation.ipynb` | Data contracts, validation, cleaning, data engineering foundation |
+| 02 | `notebooks/demo/02_analysis_and_baselines.ipynb` | EDA and traditional ML baselines |
+| 03 | `notebooks/demo/03_multimodal_training_and_tuning.ipynb` | Multimodal training and manual tuning |
+| 04 | `notebooks/demo/04_imbalance_stability_export_serve.ipynb` | Imbalance strategy, stability, export, and serving |
+
+Archived historical notebooks:
+
+- `notebooks/legacy/00_util/read_large_weather_csv_experiments.ipynb`
+- `notebooks/legacy/01_eda/lake_effect_precipitation_exploration.ipynb`
+- `notebooks/legacy/02_preprocessing/lake_michigan_satellite_preprocessing.ipynb`
+- `notebooks/legacy/03_training/multimodal_rainfall_training_pipeline.ipynb`
+
+---
+
 ## Engineering Depth (Portfolio Signals)
 
 1. Data cleaning + analysis + ML:
@@ -162,7 +184,8 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 ├── data/           # raw / interim / processed / reference
 ├── docs/           # architecture and planning
 ├── models/         # trained checkpoints (.pth/.h5)
-├── notebooks/      # exploratory and legacy notebook workflows
+├── notebooks/demo/ # portfolio demo notebooks (00-04)
+├── notebooks/legacy/ # archived historical notebooks
 ├── scripts/        # env helpers
 ├── src/            # production Python modules
 └── tests/          # test placeholders (to be expanded)

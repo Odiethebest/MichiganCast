@@ -30,6 +30,25 @@ scripts/run_in_pytorch_env.sh <你的命令>
 
 ---
 
+## 0.1 Notebook 导航入口（建议演示顺序）
+
+对外 demo 统一从 `notebooks/demo/` 进入，按顺序讲解：
+
+1. `notebooks/demo/00_demo_index.ipynb`：总览与能力映射
+2. `notebooks/demo/01_data_foundation.ipynb`：数据契约、质量检查、清洗与版本化
+3. `notebooks/demo/02_analysis_and_baselines.ipynb`：EDA 与传统 ML 基线
+4. `notebooks/demo/03_multimodal_training_and_tuning.ipynb`：多模态训练与手动调参
+5. `notebooks/demo/04_imbalance_stability_export_serve.ipynb`：不平衡策略、稳定性、导出、服务与监控
+
+历史 notebook 已归档至 `notebooks/legacy/`，仅作背景材料，不作为主演示路径：
+
+- `notebooks/legacy/00_util/read_large_weather_csv_experiments.ipynb`
+- `notebooks/legacy/01_eda/lake_effect_precipitation_exploration.ipynb`
+- `notebooks/legacy/02_preprocessing/lake_michigan_satellite_preprocessing.ipynb`
+- `notebooks/legacy/03_training/multimodal_rainfall_training_pipeline.ipynb`
+
+---
+
 ## 1. 项目目标定义（先统一口径）
 
 代码位置：
