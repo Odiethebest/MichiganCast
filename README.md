@@ -1,6 +1,6 @@
 # MichiganCast: Multimodal Lake-Effect Precipitation Forecasting Pipeline
 
-> A production-oriented portfolio project for leakage-safe forecasting (`t+6h`, `t+24h`) using satellite image sequences and meteorological time-series.
+> A production-oriented project for leakage-safe forecasting (`t+6h`, `t+24h`) using satellite image sequences and meteorological time-series.
 
 [![Python](https://img.shields.io/badge/Python-3.9-3776AB?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -13,12 +13,14 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Project Background](#project-background)
 - [Architecture](#architecture)
 - [Core Capabilities](#core-capabilities)
+- [Mathematical Foundations](#mathematical-foundations)
 - [Pipeline Surface](#pipeline-surface)
 - [Getting Started](#getting-started)
 - [Notebook Demo Flow](#notebook-demo-flow)
-- [Engineering Depth (Portfolio Signals)](#engineering-depth-portfolio-signals)
+- [Engineering Depth](#engineering-depth)
 - [Repository Structure](#repository-structure)
 - [Documentation](#documentation)
 
@@ -39,6 +41,18 @@ Current codebase implements:
 - Reproducible cleaning pipeline and EDA report generation
 - Traditional ML baselines (Logistic Regression, Random Forest, Gradient Boosting)
 - Modular multimodal PyTorch training stack (`Dataset`, `Model`, `Train Loop`, CLI entry)
+
+---
+
+## Project Background
+
+The project originates from a practical weather challenge in the Lake Michigan region, where precipitation events are strongly influenced by lake-effect dynamics and can change quickly across time. The initial exploratory workflow was built in notebooks and revealed two critical realities: satellite signals are informative but noisy, and tabular weather variables alone do not fully capture spatial cloud evolution.
+
+During early exploration, several data constraints were identified and later formalized into the engineering pipeline: daytime-only image reliability windows, missing or corrupted image segments, coastline padding artifacts, and class imbalance in rain events. These constraints shaped the current design choices in `src/`, including contract checks, data validation gates, deterministic cleaning, and explicit leakage-safe labeling with time-based splits.
+
+Model selection follows the same reasoning. Classical baselines are kept as lower-bound references. The final training stack uses multimodal temporal learning because the task is inherently spatiotemporal: cloud structures evolve across image sequences, while meteorological signals provide complementary dynamics. This is why the project integrates a visual sequence branch with a meteorological sequence branch, then evaluates the fused model under rare-event-aware metrics.
+
+For the full narrative on motivation, data realities, and architecture rationale, see [Project Background and Modeling Rationale](docs/background/project_background_and_model_rationale.md).
 
 ---
 
@@ -84,6 +98,24 @@ traditional ML          ConvLSTM + LSTM multimodal network
 | EDA automation | `src/analysis/eda_report.py` | EDA JSON + figures (distribution/correlation/seasonality) |
 | Baseline modeling | `src/models/baselines.py` | PR-AUC, F1, Recall, Recall@Precision, Brier, confusion matrices |
 | Multimodal training | `src/models/multimodal/*` | Best checkpoint + train summary JSON |
+
+---
+
+## Mathematical Foundations
+
+This project uses a forecasting-oriented mathematical stack rather than same-time classification assumptions:
+
+- Forecast target definition with strict temporal ordering \(X\_time < y\_time\)
+- Time-based split by target year to prevent future leakage
+- ConvLSTM plus LSTM multimodal fusion for spatiotemporal representation learning
+- Imbalance-aware optimization with weighted BCE, focal loss, and threshold moving
+- Rare-event evaluation with PR-AUC, Recall@Precision, and Brier score
+- Stability criterion based on repeated-run metric deltas
+
+For full formulas, derivations, code mapping, and academic references:
+
+- [Mathematical Foundations (ZH)](docs/math/michigancast_mathematical_foundations_zh.md)
+- [Mathematical Foundations (EN)](docs/math/michigancast_mathematical_foundations_en.md)
 
 ---
 
@@ -143,7 +175,7 @@ scripts/run_in_pytorch_env.sh python -m src.models.multimodal.train --nrows 5000
 
 ## Notebook Demo Flow
 
-Primary portfolio demo notebooks (run in order):
+Primary demo notebooks (run in order):
 
 | Order | Notebook | Goal |
 |---|---|---|
@@ -162,7 +194,7 @@ Archived historical notebooks:
 
 ---
 
-## Engineering Depth (Portfolio Signals)
+## Engineering Depth
 
 1. Data cleaning + analysis + ML:
 `contracts.py` / `validate.py` / `clean.py` / `eda_report.py` / `baselines.py` form a reproducible tabular ML pipeline with explicit quality gates and rare-event metrics.
@@ -184,7 +216,7 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 ├── data/           # raw / interim / processed / reference
 ├── docs/           # active docs, planning docs, and historical archive
 ├── models/         # trained checkpoints (.pth/.h5)
-├── notebooks/demo/ # portfolio demo notebooks (00-04)
+├── notebooks/demo/ # demo notebooks (00-04)
 ├── notebooks/legacy/ # archived historical notebooks
 ├── scripts/        # env helpers
 ├── src/            # production Python modules
@@ -196,6 +228,8 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 ## Documentation
 
 - [Documentation Index](docs/README.md)
+- [Project Background and Modeling Rationale](docs/background/project_background_and_model_rationale.md)
+- [Mathematical Foundations (ZH)](docs/math/michigancast_mathematical_foundations_zh.md)
+- [Mathematical Foundations (EN)](docs/math/michigancast_mathematical_foundations_en.md)
 - [Project Structure](docs/architecture/project_structure.md)
-- [Portfolio Task List](docs/planning/michigancast_portfolio_task_list.md)
 - [Task Definition](configs/task.yaml)

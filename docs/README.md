@@ -5,6 +5,9 @@ This file separates active documentation from historical records.
 ## Active Documents
 
 - `../README.md`: project overview, architecture, quick start, and demo notebook entry.
+- `background/project_background_and_model_rationale.md`: project motivation, data realities, and model rationale.
+- `math/michigancast_mathematical_foundations_zh.md`: Chinese mathematical foundations and implementation mapping.
+- `math/michigancast_mathematical_foundations_en.md`: English mathematical foundations and implementation mapping.
 - `architecture/project_structure.md`: engineering directory conventions and ownership rules.
 - `planning/michigancast_portfolio_task_list.md`: task definitions and capability mapping.
 - `../configs/experiments/README.md`: manual hyperparameter matrix scope.
