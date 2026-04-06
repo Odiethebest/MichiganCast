@@ -1,0 +1,44 @@
+{
+  "dataset_id": "traverse_city_clean_v1",
+  "layer": "interim",
+  "created_at_utc": "2026-04-06T03:51:15.818336+00:00",
+  "hash_algorithm": "sha256",
+  "artifact": {
+    "type": "file",
+    "path": "data/interim/traverse_city_daytime_clean_v1.csv",
+    "hash": "21396f411eda48a9ee072a098179fbe82eb6ba6d77ceb5918e73e8497b56263b",
+    "stats": {
+      "size_bytes": 2337513,
+      "suffix": ".csv",
+      "sampled_rows": 1000,
+      "sampled_columns": [
+        "Date_UTC",
+        "Time_UTC",
+        "File_name_for_1D_lake",
+        "Temp_F",
+        "RH_pct",
+        "Dewpt_F",
+        "Wind_Spd_mph",
+        "Wind_Direction_deg",
+        "Peak_Wind_Gust_mph",
+        "Low_Cloud_Ht_ft",
+        "Med_Cloud_Ht_ft",
+        "High_Cloud_Ht_ft",
+        "Visibility_mi",
+        "Atm_Press_hPa",
+        "Sea_Lev_Press_hPa",
+        "Altimeter_hPa",
+        "Precip_in",
+        "source_row_id",
+        "timestamp_utc"
+      ]
+    }
+  },
+  "lineage": {
+    "source_paths": [
+      "data/processed/tabular/traverse_city_daytime_meteo_preprocessed.csv"
+    ],
+    "build_command": "python -m src.data.clean --input data/processed/tabular/traverse_city_daytime_meteo_preprocessed.csv --output data/interim/traverse_city_daytime_clean_v1.csv",
+    "notes": "T31 manifest snapshot"
+  }
+}

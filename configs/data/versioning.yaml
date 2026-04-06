@@ -1,0 +1,12 @@
+versioning:
+  manifest_root: configs/data/versions
+  allowed_layers:
+    - raw
+    - external
+    - interim
+    - processed
+    - features
+    - reference
+  hash_algorithm: sha256
+  include_file_stats: true
+

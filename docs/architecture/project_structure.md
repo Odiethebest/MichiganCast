@@ -1,73 +1,58 @@
-# MichiganCast Project Structure (Engineering Standard)
+# MichiganCast Project Structure (T30)
 
-This project is organized as a production-oriented ML repository, with clear separation of concerns:
+The repository follows a production-style ML structure with clear ownership boundaries.
 
 ```text
 .
-├── artifacts/
+├── artifacts/                  # generated outputs (reports, figures, experiment logs, exported models)
+│   ├── experiments/
 │   ├── figures/
-│   │   ├── eval_confusion_matrix.png
-│   │   └── train_validation_metrics.png
-│   ├── logs/
-│   │   └── tensorboard/
+│   ├── models/
 │   └── reports/
 ├── configs/
+│   ├── data/
+│   │   ├── versioning.yaml
+│   │   └── versions/
+│   ├── environment/
 │   └── experiments/
 ├── data/
+│   ├── raw/
 │   ├── external/
 │   ├── interim/
 │   ├── processed/
-│   │   ├── images/
-│   │   │   └── lake_michigan_64_png/
-│   │   └── tabular/
-│   │       └── traverse_city_daytime_meteo_preprocessed.csv
-│   ├── raw/
-│   └── reference/
-│       └── lake_michigan_lat_lon_index.csv
+│   ├── features/
+│   ├── reference/
+│   └── README.md
 ├── docs/
 │   ├── architecture/
-│   │   └── project_structure.md
 │   └── planning/
-│       └── michigancast_portfolio_task_list.md
-├── models/
+├── models/                     # local model checkpoints (framework-specific)
 │   ├── keras/
-│   │   └── rain_multimodal_img6_meteo18_best.h5
 │   └── pytorch/
-│       ├── rain_multimodal_baseline_best.pth
-│       ├── rain_multimodal_img8_meteo24_best.pth
-│       └── rain_multimodal_img16_meteo48_best.pth
-├── notebooks/
-│   ├── 00_util/
-│   │   └── read_large_weather_csv_experiments.ipynb
-│   ├── 01_eda/
-│   │   └── lake_effect_precipitation_exploration.ipynb
-│   ├── 02_preprocessing/
-│   │   └── lake_michigan_satellite_preprocessing.ipynb
-│   └── 03_training/
-│       └── multimodal_rainfall_training_pipeline.ipynb
-├── reports/
-│   └── slides/
-│       └── info6106_final_presentation_group3.pptx
-├── scripts/
+├── notebooks/                  # exploratory or legacy notebooks (not production entrypoints)
+├── scripts/                    # environment/helper shell scripts
 ├── src/
+│   ├── analysis/
 │   ├── data/
 │   ├── eval/
 │   ├── features/
 │   ├── models/
+│   │   └── multimodal/
 │   ├── serve/
 │   └── train/
 └── tests/
 ```
 
-## Naming Rules
+## Ownership Rules
 
-1. Use snake_case for files and folders.
-2. Prefix notebooks by stage (`00_`, `01_`, `02_`, `03_`) to preserve execution flow.
-3. Store only immutable or versioned datasets in `data/processed` and `data/reference`.
-4. Store all trained weights in `models/` by framework (`pytorch/`, `keras/`).
-5. Store generated outputs in `artifacts/` (figures, logs, reports).
-6. Keep implementation code in `src/` and tests in `tests/`.
+1. Production logic must live under `src/`, not in notebooks.
+2. Runtime outputs must go to `artifacts/`, not source folders.
+3. Datasets must stay in `data/` with explicit layer semantics.
+4. Experiment definitions belong to `configs/experiments/`.
+5. Dataset version manifests belong to `configs/data/versions/`.
 
-## Local-Only Folders
+## T30 Completion Criteria Mapping
 
-- `.idea/` and `.DS_Store` are local environment files and should not be treated as project artifacts.
+- Core logic is in `src/` modules and callable via CLI scripts.
+- Notebooks are retained for exploration only.
+- Root directory has no business logic scripts outside `src/`/`scripts/`.

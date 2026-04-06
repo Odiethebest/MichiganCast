@@ -18,6 +18,9 @@ __pycache__/
 data/processed/images/lake_michigan_64_png/
 data/processed/tabular/*.csv
 data/interim/*.csv
+data/features/**/*.parquet
+data/features/**/*.csv
+data/features/**/*.json
 
 # Trained weights
 models/**/*.pth
