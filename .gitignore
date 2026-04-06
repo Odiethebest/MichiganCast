@@ -1,0 +1,31 @@
+# OS / Editor
+.DS_Store
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Local environment
+.venv/
+.venv
+
+# ML datasets / generated assets
+data/processed/images/lake_michigan_64_png/
+data/processed/tabular/*.csv
+
+# Trained weights
+models/**/*.pth
+models/**/*.h5
+
+# Generated artifacts
+artifacts/figures/*.png
+artifacts/logs/
+artifacts/reports/
+
+# Presentation exports
+reports/slides/*.pptx
