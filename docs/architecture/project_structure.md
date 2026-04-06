@@ -24,12 +24,14 @@ The repository follows a production-style ML structure with clear ownership boun
 │   ├── reference/
 │   └── README.md
 ├── docs/
+│   ├── README.md
 │   ├── architecture/
-│   └── planning/
+│   ├── planning/
+│   └── history/
 ├── models/                     # local model checkpoints (framework-specific)
 │   ├── keras/
 │   └── pytorch/
-├── notebooks/                  # exploratory or legacy notebooks (not production entrypoints)
+├── notebooks/                  # demo and legacy notebooks (not production entrypoints)
 ├── scripts/                    # environment/helper shell scripts
 ├── src/
 │   ├── analysis/

@@ -182,7 +182,7 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 ├── artifacts/      # generated reports/figures
 ├── configs/        # task + environment + experiment configs
 ├── data/           # raw / interim / processed / reference
-├── docs/           # architecture and planning
+├── docs/           # active docs, planning docs, and historical archive
 ├── models/         # trained checkpoints (.pth/.h5)
 ├── notebooks/demo/ # portfolio demo notebooks (00-04)
 ├── notebooks/legacy/ # archived historical notebooks
@@ -195,6 +195,7 @@ The repository uses layered data directories (`raw/interim/processed/reference`)
 
 ## Documentation
 
+- [Documentation Index](docs/README.md)
 - [Project Structure](docs/architecture/project_structure.md)
 - [Portfolio Task List](docs/planning/michigancast_portfolio_task_list.md)
 - [Task Definition](configs/task.yaml)
