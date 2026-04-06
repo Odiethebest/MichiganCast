@@ -1,0 +1,55 @@
+project:
+  name: MichiganCast
+  stage: portfolio-production-upgrade
+
+task:
+  type: binary_classification
+  target_name: rain_event
+  target_source_column: Precip_in
+  target_rule: "rain_event(t+h) = 1 if Precip_in(t+h) > 0 else 0"
+  forecast_horizons_hours:
+    - 6
+    - 24
+  label_timestamp_definition: "y_time = anchor_time + horizon_hours"
+
+inputs:
+  anchor_timestamp_definition: "t (the end timestamp of all input windows)"
+  image_window:
+    lookback_steps: 16
+    step_unit: available_observation
+    include_target_timestamp: false
+  meteorological_window:
+    lookback_steps: 48
+    step_unit: available_observation
+    include_target_timestamp: false
+
+features:
+  datetime_columns:
+    date: Date_UTC
+    time: Time_UTC
+    combined_timestamp: timestamp_utc
+  leakage_guard:
+    require_x_time_strictly_before_y_time: true
+    forbidden_same_time_features:
+      - Precip_in
+  meteorological_feature_columns:
+    - Temp_F
+    - RH_pct
+    - Dewpt_F
+    - Wind_Spd_mph
+    - Wind_Direction_deg
+    - Peak_Wind_Gust_mph
+    - Low_Cloud_Ht_ft
+    - Med_Cloud_Ht_ft
+    - High_Cloud_Ht_ft
+    - Visibility_mi
+    - Atm_Press_hPa
+    - Sea_Lev_Press_hPa
+    - Altimeter_hPa
+
+split:
+  strategy: time_based
+  split_on: label_year
+  train_years: [2006, 2012]
+  val_years: [2013, 2014]
+  test_years: [2015, 2015]
