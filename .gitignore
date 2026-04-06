@@ -17,6 +17,7 @@ __pycache__/
 # ML datasets / generated assets
 data/processed/images/lake_michigan_64_png/
 data/processed/tabular/*.csv
+data/interim/*.csv
 
 # Trained weights
 models/**/*.pth
